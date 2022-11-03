@@ -6,92 +6,9 @@ from scripts.cat.names import *
 from scripts.cat.cats import *
 from scripts.cat.pelts import *
 
-resource_directory = "resources/dicts/patrols/"
-leaves_path = "leaves/"
-biomes_path = "biomes/"
-condition_path = "conditions/"
-
-GENERAL_DEAD = None
-with open(f"{resource_directory}general.json", 'r') as read_file:
-    GENERAL_DEAD = ujson.loads(read_file.read())
-
-GENERAL_HUNTING = None
-with open(f"{resource_directory}general_hunting.json", 'r') as read_file:
-    GENERAL_HUNTING = ujson.loads(read_file.read())
-
-GENERAL_FIGHTING = None
-with open(f"{resource_directory}general_fighting.json", 'r') as read_file:
-    GENERAL_FIGHTING = ujson.loads(read_file.read())
-
-GENERAL_NEW_CAT = None
-with open(f"{resource_directory}general_new_cat.json", 'r') as read_file:
-    GENERAL_NEW_CAT = ujson.loads(read_file.read())
-
-# ---------------------------------------------------------------------------- #
-#                            patrols with conditions                           #
-# ---------------------------------------------------------------------------- #
-
-ONE_CAT = None
-with open(f"{resource_directory}{condition_path}one_cat_patrol.json", 'r') as read_file:
-    ONE_CAT = ujson.loads(read_file.read())
-
-ONE_CAT_APPR = None
-with open(f"{resource_directory}{condition_path}one_cat_apprentice_patrol.json", 'r') as read_file:
-    ONE_CAT_APPR = ujson.loads(read_file.read())
-
-# ---------------------------------------------------------------------------- #
-#                                    leaves                                    #
-# ---------------------------------------------------------------------------- #
-
-NEWLEAF = None
-with open(f"{resource_directory}{leaves_path}newleaf.json", 'r') as read_file:
-    NEWLEAF = ujson.loads(read_file.read())
-
-GREENLEAF = None
-with open(f"{resource_directory}{leaves_path}greenleaf.json", 'r') as read_file:
-    GREENLEAF = ujson.loads(read_file.read())
-
-LEAF_FALL = None
-with open(f"{resource_directory}{leaves_path}leaf-fall.json", 'r') as read_file:
-    LEAF_FALL = ujson.loads(read_file.read())
-
-LEAF_BARE = None
-with open(f"{resource_directory}{leaves_path}leaf-bare.json", 'r') as read_file:
-    LEAF_BARE = ujson.loads(read_file.read())
-
-# ---------------------------------------------------------------------------- #
-#                                    biomes                                    #
-# ---------------------------------------------------------------------------- #
-
-FOREST = None
-with open(f"{resource_directory}{biomes_path}forest.json", 'r') as read_file:
-    FOREST = ujson.loads(read_file.read())
-
-PLAINS = None
-with open(f"{resource_directory}{biomes_path}plains.json", 'r') as read_file:
-    PLAINS = ujson.loads(read_file.read())
-
-MOUNTAINOUS = None
-with open(f"{resource_directory}{biomes_path}mountainous.json", 'r') as read_file:
-    MOUNTAINOUS = ujson.loads(read_file.read())
-
-SWAMP = None
-with open(f"{resource_directory}{biomes_path}swamp.json", 'r') as read_file:
-    SWAMP = ujson.loads(read_file.read())
-
-BEACH = None
-with open(f"{resource_directory}{biomes_path}beach.json", 'r') as read_file:
-    BEACH = ujson.loads(read_file.read())
-
-DISASTER = None
-with open(f"{resource_directory}disaster.json", 'r') as read_file:
-    DISASTER = ujson.loads(read_file.read())
-
-
 # ---------------------------------------------------------------------------- #
 #                              PATROL CLASS START                              #
 # ---------------------------------------------------------------------------- #
-
 
 class Patrol(object):
 
@@ -101,6 +18,7 @@ class Patrol(object):
         self.patrol_cats = []
         self.patrol_names = []
         self.possible_patrol_leaders = []
+        self.patrol_leader_name = None
         self.patrol_skills = []
         self.patrol_statuses = []
         self.patrol_traits = []
@@ -109,6 +27,7 @@ class Patrol(object):
         self.patrol_random_cat = None
         self.patrol_other_cats = []
         self.patrol_stat_cat = None
+        self.other_clan = None
         self.experience_levels = [
             'very low', 'low', 'slightly low', 'average', 'somewhat high',
             'high', 'very high', 'master', 'max'
@@ -124,9 +43,8 @@ class Patrol(object):
         self.patrol_total_experience = 0
         self.patrol_other_cats.clear()
         for cat in game.switches['current_patrol']:
-            name = str(cat.name)
             self.patrol_cats.append(cat)
-            self.patrol_names.append(name)
+            self.patrol_names.append(str(cat.name))
             if cat.status != 'apprentice':
                 self.possible_patrol_leaders.append(cat)
             self.patrol_skills.append(cat.skill)
@@ -140,21 +58,37 @@ class Patrol(object):
             self.patrol_leader = choice(self.patrol_cats)
         if len(self.patrol_cats) >= 2:
             self.patrol_random_cat = choice(self.patrol_cats)
-            for self.patrol_names in self.patrol_cats:
+            for cat in self.patrol_cats:
                 if self.patrol_random_cat == self.patrol_leader:
                     self.patrol_random_cat = choice(self.patrol_cats)
                 else:
                     break
         else:
-            self.patrol_random_cat = choice(self.patrol_cats)
-
+            self.patrol_random_cat = choice(self.patrol_cats)        
         if len(self.patrol_cats) >= 3:
-            for self.patrol_names in self.patrol_cats:
+            for cat in self.patrol_cats:
                 if cat != self.patrol_leader and cat != self.patrol_random_cat:
-                    self.patrol_other_cats.append(cat)
+                    self.patrol_other_cats.append(cat)                    
+        if self.patrol_leader is not None:
+            pl_index = self.patrol_cats.index(self.patrol_leader)
+            patrol_leader_name = str(self.patrol_names[pl_index])
+            self.patrol_leader_name = str(patrol_leader_name)
 
+        self.other_clan = choice(game.clan.all_clans)
 
-    def get_possible_patrols(self, current_season, biome, all_clans, game_setting_disaster):
+    def add_cat(self, cat):
+        """Add a new cat to the patrol"""
+        self.patrol_cats.append(cat)
+        self.patrol_names.append(str(cat.name))
+        if cat.status != 'apprentice':
+            self.possible_patrol_leaders.append(cat)
+        self.patrol_skills.append(cat.skill)
+        self.patrol_statuses.append(cat.status)
+        self.patrol_traits.append(cat.trait)
+        self.patrol_total_experience += cat.experience
+        game.patrolled.append(cat)
+
+    def get_possible_patrols(self, current_season, biome, all_clans, game_setting_disaster = game.settings['disasters']):
         possible_patrols = []
         # general patrols, any number of cats
 
@@ -201,8 +135,97 @@ class Patrol(object):
 
 
         # other_clan patrols
-        if len(all_clans) > 0:
-            1 == 1  # will add here
+        if randint(1, 1) == 1 and self.other_clan is not None:
+            other_clan = self.other_clan
+            other_clan_relations = int(other_clan.relations)
+            #other_clan_temperament = int(other_clan.relations)
+            if other_clan_relations > 17:
+                possible_patrols.extend([
+                PatrolEvent(800,
+                'c_n meets their allies, o_c_n, at the border', 
+                'Your cats have a nice conversation with them',
+                'Although they act nice, the alliance seems to be weakening', 
+                'You decide not to talk with the ally patrol', 60, 10, 
+                other_clan,
+                win_skills = ['good speaker', 'great speaker', 'excellent speaker'],
+                antagonize_text= 'Your cats seem to ignore the alliance, threatening o_c_n anyway',
+                antagonize_fail_text = 'Your cats try to offend to the other clan but only make things slightly awkward'
+                )
+                ])
+
+            elif other_clan_relations < 11 and other_clan_relations > 6:
+                possible_patrols.extend([
+                PatrolEvent(801, 
+                'c_n is threatened by a o_c_n patrol at the border', 
+                'Your cats manage to smooth things out a bit',
+                'The patrol ends with threats and malice. Clan relations have worsened', 
+                'You decide to back off from the opposing patrol', 60, 10, 
+                other_clan,
+                win_skills=['great speaker', 'excellent speaker'],
+                antagonize_text='Your cats shoot back threats as well, hurting clan relations',
+                antagonize_fail_text='Your cats mostly ignore the other clan\'s threats'
+                )
+                ])
+
+            elif other_clan_relations < 7 and 'fierce' not in self.patrol_traits and 'bloodthirsty' not in self.patrol_traits:
+                possible_patrols.extend([
+                PatrolEvent(802,
+                'Your patrol is attacked by a o_c_n patrol at the border', 
+                'Your cats manage to escape without injury',
+                'r_c is killed by the o_c_n patrol', 
+                'You run away from the other patrol', 60, 10,
+                other_clan,
+                win_skills=['great fighter', 'excellent fighter', 'excellent speaker'],
+                antagonize_text='Your cats attack o_c_n right back',
+                antagonize_fail_text='r_c is killed by the o_c_n patrol'
+                )
+                ])
+
+
+            elif other_clan_relations < 7 and 'fierce' in self.patrol_traits:
+                possible_patrols.extend([
+                PatrolEvent(803,
+                'Your patrol is attacked by a o_c_n patrol at the border',
+                'Your cats manage to escape, but only after s_c kills an enemy ' + choice(['warrior', 'apprentice']),
+                'r_c is killed by the o_c_n patrol', 
+                'You run away from the other patrol', 60, 10,
+                other_clan,
+                win_skills=['great fighter', 'excellent fighter', 'excellent speaker'],
+                win_trait = 'fierce',
+                antagonize_text='Your cats chase o_c_n away as they flee',
+                antagonize_fail_text='r_c is killed by the o_c_n patrol'
+                )
+                ])
+
+            elif other_clan_relations < 7:
+                possible_patrols.extend([
+                PatrolEvent(804, 
+                'Your patrol is attacked by a o_c_n patrol at the border',
+                'Your cats manage to escape, but only after s_c kills an enemy ' + choice(['warrior', 'apprentice']),
+                'r_c is killed by the o_c_n patrol', 
+                'You run away from the other patrol', 60, 10,
+                other_clan,
+                win_skills=['great fighter', 'excellent fighter', 'excellent speaker'],
+                win_trait = 'bloodthirsty',
+                antagonize_text= 'Your cats chase o_c_n away as they flee',
+                antagonize_fail_text= 'r_c is killed by the o_c_n patrol'
+                )
+                ])
+
+
+            else:
+                possible_patrols.extend([
+                PatrolEvent(805,
+                'c_n meets a o_c_n patrol at the border, but nobody is hostile',
+                'Your cats have a nice conversation with them',
+                'Despite the lack of outright hostilities, the situation turns awkward fast',
+                'You decide not to talk with the opposing patrol', 60, 10,
+                other_clan,
+                win_skills=['great speaker', 'excellent speaker'],
+                antagonize_text= 'Your cats intentionally antagonize the other clan anyway',
+                antagonize_fail_text= 'Despite the vague threats, the situation only turns awkward',
+                )
+                ])
 
         # deadly patrols
         if game_setting_disaster == True:
@@ -329,7 +352,7 @@ class Patrol(object):
                     ])
                         
                 # romantic patrols for two cats
-                if cat_class.is_potential_mate(self.patrol_leader, self.patrol_random_cat):
+                if self.patrol_leader.is_potential_mate(self.patrol_random_cat, for_love_interest = True):
                     possible_patrols.extend([
                     PatrolEvent(
                         1010,
@@ -399,7 +422,7 @@ class Patrol(object):
                         'p_l asks r_c how their training is going',
                         'r_c happily tells p_l all about the fighting move they just learned',
                         'r_c answers curtly, having been subjected to cleaning the elders\'s den recently',
-                        'r_c doesn\t hear the question and p_l changes the subject',
+                        'r_c doesn\'t hear the question and p_l changes the subject',
                         50,
                         10),
                     PatrolEvent(
@@ -623,6 +646,7 @@ class Patrol(object):
                 win_skills = patrol["win_skills"]
             )
             all_patrol_events.append(patrol_event)
+
         return all_patrol_events
 
     def calculate_success(self):
@@ -638,24 +662,49 @@ class Patrol(object):
             if set(self.patrol_skills).isdisjoint(
                     self.patrol_event.win_skills):
                 chance = 90
-        # change the chance based on the personality
-        if self.patrol_event in range(1000, 1010):
-            get_along = get_personality_compatibility(self.patrol_leader, self.patrol_random_cat)
-            if get_along != None and get_along:
-                chance = chance + 50
-            if get_along != None and not get_along:
-                chance = chance - 50
+        if self.patrol_event.win_trait is not None:
+            if set(self.patrol_traits).isdisjoint(
+                    self.patrol_event.win_trait):
+                chance = 90
         c = randint(0, 100)
         if c < chance:
             self.success = True
             self.handle_exp_gain()
             self.add_new_cats()
-            self.handle_relationships()
+            self.handle_clan_relations(difference = int(1))
         else:
             self.success = False
             self.handle_deaths()
             self.handle_scars()
-            self.handle_relationships()
+            self.handle_clan_relations(difference = int(-1))
+
+    def calculate_success_antagonize(self):
+            if self.patrol_event is None:
+                return
+            # if patrol contains cats with autowin skill, chance of success is high
+            # otherwise it will calculate the chance by adding the patrolevent's chance of success plus the patrol's total exp
+            chance = self.patrol_event.chance_of_success + int(
+                self.patrol_total_experience / 10)
+            if self.patrol_event.patrol_id != 100:
+                chance = min(chance, 80)
+            if self.patrol_event.win_skills is not None:
+                if set(self.patrol_skills).isdisjoint(
+                        self.patrol_event.win_skills):
+                    chance = 90
+            if self.patrol_event.win_trait is not None:
+                if set(self.patrol_traits).isdisjoint(
+                        self.patrol_event.win_trait):
+                    chance = 90
+            c = randint(0, 100)
+            if c < chance:
+                self.success = True
+                self.handle_exp_gain()
+                self.handle_clan_relations(difference = int(-1))
+            else:
+                self.success = False
+                self.handle_deaths()
+                self.handle_scars()
+                self.handle_clan_relations(difference = int(-2))
 
     def handle_exp_gain(self):
         if self.success:
@@ -668,7 +717,7 @@ class Patrol(object):
 
     def handle_deaths(self):
         if self.patrol_event.patrol_id in [
-                108, 113, 114, 116, 120, 141, 250, 305, 307
+                108, 113, 114, 120, 141, 250, 305, 307, 802, 803, 804
         ]:
             if self.patrol_random_cat.status == 'leader':
                 if self.patrol_event.patrol_id in [108, 113]:
@@ -711,6 +760,17 @@ class Patrol(object):
         if self.patrol_event.patrol_id == 102 and game.settings.get(
                 'retirement'):
             self.patrol_random_cat.status_change('elder')
+
+    def handle_clan_relations(self, difference):
+        other_clan = patrol.other_clan
+        otherclan = game.clan.all_clans.index(other_clan)
+        clan_relations = int(game.clan.all_clans[otherclan].relations)
+        if self.patrol_event.patrol_id in list(range(800, 806)):
+            if patrol.success is True:
+                clan_relations += difference
+            else:
+                clan_relations += difference
+        game.clan.all_clans[otherclan].relations = clan_relations
 
     def handle_relationships(self):
         romantic_love = 0
@@ -821,6 +881,9 @@ class Patrol(object):
             if randint(0, 5) == 0:  # chance to keep name
                 kit.name.prefix = choice(names.loner_names)
                 kit.name.suffix = ''
+            elif randint(0, 3) == 0: #chance to have kittypet name prefix + suffix
+                kit.name.prefix = choice(names.loner_names)
+                kit.name.suffix = choice(names.normal_suffixes)
             if self.patrol_event.patrol_id == 501:
                 num_kits = choice([2, 2, 2, 2, 3, 4])
                 for _ in range(num_kits):
@@ -873,6 +936,9 @@ class Patrol(object):
             if randint(0, 5) == 0:  # chance to keep name
                 kit.name.prefix = choice(names.loner_names)
                 kit.name.suffix = ''
+            elif randint(0, 3) == 0:
+                kit.name.prefix = choice(names.loner_names)
+                kit.name.suffix = choice(names.normal_suffixes)
 
         elif self.patrol_event.patrol_id in [505]:  # new med cat
             new_status = choice(['medicine cat'])
@@ -890,6 +956,7 @@ class Patrol(object):
             kit.relationships = relationships
             game.clan.add_cat(kit)
             add_siblings_to_cat(kit, cat_class)
+            add_children_to_cat(kit, cat_class)
             kit.skill = 'formerly a loner'
             kit.thought = 'Is looking around the camp with wonder'
             if (kit.status == 'elder'):
@@ -897,6 +964,10 @@ class Patrol(object):
             if randint(0, 5) == 0:  # chance to keep name
                 kit.name.prefix = choice(names.loner_names)
                 kit.name.suffix = ''
+            elif randint(0, 3) == 0:
+                kit.name.prefix = choice(names.loner_names)
+                kit.name.suffix = choice(names.normal_suffixes)
+
     def check_territories(self):
         hunting_claim = str(game.clan.name) + 'Clan Hunting Grounds'
         self.hunting_grounds = []
@@ -907,6 +978,9 @@ class Patrol(object):
                     self.hunting_claim_info[(x, y)] = game.map_info[(x, y)]
                     self.hunting_grounds.append((x, y))
 
+# ---------------------------------------------------------------------------- #
+#                               PATROL CLASS END                               #
+# ---------------------------------------------------------------------------- #
 
 class PatrolEvent(object):
 
@@ -918,10 +992,11 @@ class PatrolEvent(object):
                  decline_text,
                  chance_of_success,
                  exp,
-                 other_clan=None,
-                 win_skills=None,
-                 antagonize_text='',
-                 antagonize_fail_text=''):
+                 other_clan = None,
+                 win_skills = None,
+                 win_trait = None,
+                 antagonize_text = '',
+                 antagonize_fail_text = ''):
         self.patrol_id = patrol_id
         self.intro_text = intro_text
         self.success_text = success_text
@@ -931,8 +1006,94 @@ class PatrolEvent(object):
         self.exp = exp
         self.other_clan = other_clan
         self.win_skills = win_skills
+        self.win_trait = win_trait
         self.antagonize_text = antagonize_text
         self.antagonize_fail_text = antagonize_fail_text
 
-
 patrol = Patrol()
+
+# ---------------------------------------------------------------------------- #
+#                                LOAD RESOURCES                                #
+# ---------------------------------------------------------------------------- #
+
+resource_directory = "resources/dicts/patrols/"
+leaves_path = "leaves/"
+biomes_path = "biomes/"
+condition_path = "conditions/"
+
+GENERAL_DEAD = None
+with open(f"{resource_directory}general.json", 'r') as read_file:
+    GENERAL_DEAD = ujson.loads(read_file.read())
+
+GENERAL_HUNTING = None
+with open(f"{resource_directory}general_hunting.json", 'r') as read_file:
+    GENERAL_HUNTING = ujson.loads(read_file.read())
+
+GENERAL_FIGHTING = None
+with open(f"{resource_directory}general_fighting.json", 'r') as read_file:
+    GENERAL_FIGHTING = ujson.loads(read_file.read())
+
+GENERAL_NEW_CAT = None
+with open(f"{resource_directory}general_new_cat.json", 'r') as read_file:
+    GENERAL_NEW_CAT = ujson.loads(read_file.read())
+
+# ---------------------------------------------------------------------------- #
+#                            patrols with conditions                           #
+# ---------------------------------------------------------------------------- #
+
+ONE_CAT = None
+with open(f"{resource_directory}{condition_path}one_cat_patrol.json", 'r') as read_file:
+    ONE_CAT = ujson.loads(read_file.read())
+
+ONE_CAT_APPR = None
+with open(f"{resource_directory}{condition_path}one_cat_apprentice_patrol.json", 'r') as read_file:
+    ONE_CAT_APPR = ujson.loads(read_file.read())
+
+# ---------------------------------------------------------------------------- #
+#                                    leaves                                    #
+# ---------------------------------------------------------------------------- #
+
+NEWLEAF = None
+with open(f"{resource_directory}{leaves_path}newleaf.json", 'r') as read_file:
+    NEWLEAF = ujson.loads(read_file.read())
+
+GREENLEAF = None
+with open(f"{resource_directory}{leaves_path}greenleaf.json", 'r') as read_file:
+    GREENLEAF = ujson.loads(read_file.read())
+
+LEAF_FALL = None
+with open(f"{resource_directory}{leaves_path}leaf-fall.json", 'r') as read_file:
+    LEAF_FALL = ujson.loads(read_file.read())
+
+LEAF_BARE = None
+with open(f"{resource_directory}{leaves_path}leaf-bare.json", 'r') as read_file:
+    LEAF_BARE = ujson.loads(read_file.read())
+
+# ---------------------------------------------------------------------------- #
+#                                    biomes                                    #
+# ---------------------------------------------------------------------------- #
+
+FOREST = None
+with open(f"{resource_directory}{biomes_path}forest.json", 'r') as read_file:
+    FOREST = ujson.loads(read_file.read())
+
+PLAINS = None
+with open(f"{resource_directory}{biomes_path}plains.json", 'r') as read_file:
+    PLAINS = ujson.loads(read_file.read())
+
+MOUNTAINOUS = None
+with open(f"{resource_directory}{biomes_path}mountainous.json", 'r') as read_file:
+    MOUNTAINOUS = ujson.loads(read_file.read())
+
+SWAMP = None
+with open(f"{resource_directory}{biomes_path}swamp.json", 'r') as read_file:
+    SWAMP = ujson.loads(read_file.read())
+
+BEACH = None
+with open(f"{resource_directory}{biomes_path}beach.json", 'r') as read_file:
+    BEACH = ujson.loads(read_file.read())
+
+DISASTER = None
+with open(f"{resource_directory}disaster.json", 'r') as read_file:
+    DISASTER = ujson.loads(read_file.read())
+
