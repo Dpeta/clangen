@@ -203,6 +203,9 @@ class Button():
                     game.clan.deputy = None
                 Cat.all_cats[cat_value].exiled = True
                 Cat.other_cats[cat_value] = Cat.all_cats[cat_value]
+            elif text == 'Exile to DF':
+                if Cat.all_cats[str(cat_value)].dead:
+                    Cat.all_cats[str(cat_value)].df = True
             elif text == 'Change to Trans Male':
                 Cat.all_cats[cat_value].genderalign = "trans male"
             elif text == 'Change to Trans Female':
@@ -243,6 +246,10 @@ class Button():
                     Cat.other_cats[cat_value] = Cat.all_cats[
                         cat_value]
                     game.switches['cur_screen'] = 'other screen'
+                elif text == 'Exile to DF':
+                    if Cat.all_cats[cat_value].dead:
+                        Cat.all_cats[cat_value].df = True
+                    game.switches['cur_screen'] = 'dark forest screen'
                 elif text == 'Change to Trans Male':
                     Cat.all_cats[cat_value].genderalign = "trans male"
                 elif text == 'Change to Trans Female':
@@ -356,14 +363,23 @@ class Button():
         """Chooses cat_value as mentor for apprentice."""
         if apprentice not in cat_value.apprentice:
             if apprentice.moons == 6:
+                # reset patrol number
+                apprentice.patrol_with_mentor = 0
+                # remove from former mentor without adding apprentice to former apprentice list
+                # and without adding mentor to former mentor list
                 apprentice.mentor.apprentice.remove(apprentice)
                 apprentice.mentor = cat_value
                 cat_value.apprentice.append(apprentice)
             else:
+                # reset patrol number
+                apprentice.patrol_with_mentor = 0
+                # remove and append relevant lists
                 apprentice.mentor.former_apprentices.append(apprentice)
                 apprentice.mentor.apprentice.remove(apprentice)
+                apprentice.former_mentor.append(apprentice.mentor)
                 apprentice.mentor = cat_value
                 cat_value.apprentice.append(apprentice)
+
 
         game.current_screen = 'clan screen'
 
