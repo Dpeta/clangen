@@ -48,6 +48,8 @@ def draw_back(x_value, y_value):
                                   text='Back',
                                   size=(105, 30),
                                   cur_screen='dark forest screen',
+                                  cat_value = the_cat,
+                                  df = True,
                                   profile_tab_group=None,
                                   hotkey=[0])
     else:
@@ -127,6 +129,8 @@ def bs_blurb_text(cat, backstory=None):
     bs_blurb = None
     if backstory is None:
         bs_blurb = "This cat was born into the clan where they currently reside."
+    if backstory == 'clan_founder':
+        bs_blurb = "This cat is one of the founding members of the clan."
     if backstory == 'clanborn':
         bs_blurb = "This cat was born into the clan where they currently reside."
     if backstory == 'halfclan1':
@@ -191,6 +195,8 @@ def backstory_text(cat):
     bs_display = backstory
     if bs_display == 'clanborn':
         bs_display = 'clanborn'
+    elif bs_display == 'clan_founder':
+        bs_display = 'clan founder'
     elif bs_display in ['halfclan1', 'halfclan2']:
         bs_display = 'half-clan'
     elif bs_display in ['outsider_roots1', 'outsider_roots2']:
@@ -573,22 +579,92 @@ class ProfileScreen(Screens):
                                       size=(176, 30),
                                       profile_tab_group=None,
                                       )
-
             screen.blit(ProfileScreen.backstory_tab, (65, 465))
 
-            history = []
+            if game.switches['sub_tab_group'] is None:
+                game.switches['sub_tab_group'] = 'life sub tab'
 
-            bs_blurb = bs_blurb_text(the_cat, backstory=the_cat.backstory)
+            # this is all a WIP, I'm working on both organizing history into tab categories
+            # and saving/displaying history - Scribble
+            # ---------------------------------------------------------------------------- #
+            #                                 life sub tab                                 #
+            # ---------------------------------------------------------------------------- #
+            """
+            this will hold history related to the cat's life time.  atm i plan for this to be:
+            - backstory blurb
+            - scar events
+            - death event (will need to find a clever way to display leader death events without running out of room)
+            """
 
-            # append backstory blurb to history
-            if bs_blurb is not None:
-                history.append(str(bs_blurb))
+            buttons.draw_image_button((710, 475),
+                                      button_name='sub_tab1',
+                                      size=(42, 30),
+                                      sub_tab_group='life sub tab'
+                                      )
+
+            if game.switches['sub_tab_group'] == 'life sub tab':
+
+
+                life_history = []
+
+                bs_blurb = bs_blurb_text(the_cat, backstory=the_cat.backstory)
+
+                # append backstory blurb to history
+                if bs_blurb is not None:
+                    life_history.append(str(bs_blurb))
+                else:
+                    life_history.append("This cat was born into the clan where they currently reside.")
+
+                # adjust and append scar events to history
+                if the_cat.scar_event:
+                    for x in range(len(the_cat.scar_event)):
+                        not_scarred = [' wounded ', ' injured ', ' battered ', ' hurt ', ' punished ']
+                        the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' is ', ' was ', 1)
+                        the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' loses ', ' lost ')
+                        the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' forces ', ' forced ')
+                        for y in not_scarred:
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(y, ' scarred ')
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' got ', ' was ')
+                            break
+                        if x == 1:
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(f'{the_cat.name} was ', 'They were also ', 1)
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(str(the_cat.name), 'They also', 1)
+                        if x >= 3:
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(f'{the_cat.name} was ', 'Then they were ', 1)
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(str(the_cat.name), 'Then they', 1)
+                    scar_history = ' '.join(the_cat.scar_event)
+                    life_history.append(scar_history)
+
+                # join together history list with line breaks
+                display_history = '\n'.join(life_history)
+
+                # display cat backstory and blurb in tab
+                verdana_small_dark.blit_text(f'{display_history}',
+                                             (90, 485),
+                                             x_limit=695,
+                                             line_break=25,
+                                             line_spacing=15
+                                             )
+
+            # ---------------------------------------------------------------------------- #
+            #                               relation sub tab                               #
+            # ---------------------------------------------------------------------------- #
+            """
+            this will hold history related to relationships with other cats.  atm i plan for this to be:
+            - Mentor Influence
+            - Former mates and # of kits had with them
+            - Current mate and # of kits had with them
+            """
 
             # check if cat has any mentor influence, else assign None
-            if the_cat.mentor_influence:
+            if len(the_cat.mentor_influence) >= 1:
                 influenced_trait = str(the_cat.mentor_influence[0]).casefold()
-                influenced_skill = str(the_cat.mentor_influence[1]).casefold()
+                if len(the_cat.mentor_influence) >= 2:
+                    influenced_skill = str(the_cat.mentor_influence[1]).casefold()
+                else:
+                    influenced_skill = None
             else:
+                game.switches['sub_tab_group'] = 'life sub tab'
                 influenced_trait = None
                 influenced_skill = None
 
@@ -598,10 +674,26 @@ class ProfileScreen(Screens):
             if influenced_trait == 'none':
                 influenced_trait = None
 
-            # if cat had mentor influence then write history text for those influences and append to history
-            if influenced_skill is not None and influenced_skill != 'none' \
-                    or influenced_trait is not None and influenced_trait != 'none':
-                # assign proper grammar to skills
+            if influenced_skill is not None or influenced_trait is not None:
+                buttons.draw_image_button((710, 512),
+                                          button_name='sub_tab2',
+                                          size=(42, 30),
+                                          sub_tab_group='relation sub tab'
+                                          )
+            else:
+                buttons.draw_image_button((710, 512),
+                                          button_name='sub_tab',
+                                          size=(42, 30),
+                                          available=False
+                                          )
+
+            if game.switches['sub_tab_group'] == 'relation sub tab':
+                screen.blit(ProfileScreen.backstory_tab, (65, 465))
+
+                relation_history = []
+
+                # if cat had mentor influence then write history text for those influences and append to history
+                    # assign proper grammar to skills
                 if influenced_skill in Cat.skill_groups.get('special'):
                     adjust_skill = f'unlock their abilities as a {influenced_skill}'
                     influenced_skill = adjust_skill
@@ -624,47 +716,66 @@ class ProfileScreen(Screens):
 
                 # append influence blurb to history
                 if influenced_trait is not None and influenced_skill is None:
-                    history.append(f"The influence of their mentor, {mentor}, caused this cat to become more {influenced_trait}.")
+                    relation_history.append(f"The influence of their mentor, {mentor}, caused this cat to become more {influenced_trait}.")
                 elif influenced_trait is None and influenced_skill is not None:
-                    history.append(f"The influence of their mentor, {mentor}, caused this cat to {influenced_skill}.")
+                    relation_history.append(f"The influence of their mentor, {mentor}, caused this cat to {influenced_skill}.")
                 elif influenced_trait is not None and influenced_skill is not None:
-                    history.append(f"The influence of their mentor, {mentor}, caused this cat to become more {influenced_trait} as well as {influenced_skill}.")
+                    relation_history.append(f"The influence of their mentor, {mentor}, caused this cat to become more {influenced_trait} as well as {influenced_skill}.")
 
-            if the_cat.scar_event:
-                for x in range(len(the_cat.scar_event)):
-                    event_words = the_cat.scar_event[x].split()
-                    for y in range(len(event_words)):
-                        not_scarred = ['wounded', 'injured', 'battered', 'hurt', 'punished']
-                        if event_words[y] == 'is':
-                            event_words[y] = 'was'
-                        elif event_words[y] == 'loses':
-                            event_words[y] = 'lost'
-                        elif event_words[y] == 'forces':
-                            event_words[y] = 'forced'
-                        elif event_words[y] in not_scarred:
-                            event_words[y] = 'scarred'
-                            if event_words[y-1] == 'got':
-                                event_words[y-1] = 'was'
-                    if x == 1 and event_words[0] == str(the_cat.name):
-                        if event_words[1] == 'was':
-                            event_words.pop(1)
-                            event_words[0] = 'They were also'
-                        else:
-                            event_words[0] = 'They also'
-                    the_cat.scar_event[x] = ' '.join(event_words)
-                scar_history = ' '.join(the_cat.scar_event)
-                history.append(scar_history)
+                # join together history list with line breaks
+                display_history = '\n'.join(relation_history)
 
+                # display cat backstory and blurb in tab
+                verdana_small_dark.blit_text(f'{display_history}',
+                                             (90, 485),
+                                             x_limit=695,
+                                             line_break=25,
+                                             line_spacing=15
+                                             )
 
+            # ---------------------------------------------------------------------------- #
+            #                              good deeds sub tab                              #
+            # ---------------------------------------------------------------------------- #
+            """
+            this will hold history related to 'good deeds' done by the cat.  atm i plan for this to be:
+            - cats that have been saved by this cat
+            - cats they have adopted?
+            - if we further develop interactions StarClan cats have with living cats, then there is potential for 
+            this to hold any important events that a dead cat is included in.
+            """
 
-            # join together history list with line breaks
-            display_history = '\n'.join(history)
+            # commented out until i have info that can be put in this tab
+            #buttons.draw_image_button((710, 549),
+            #                          button_name='sub_tab3',
+            #                          size=(42, 30),
+            #                          sub_tab_group='relation sub tab'
+            #                          )
+            buttons.draw_image_button((710, 549),
+                                      button_name='sub_tab',
+                                      size=(42, 30),
+                                      available=False
+                                      )
 
-            # display cat backstory and blurb in tab
-            verdana_small_dark.blit_text(f'{display_history}',
-                                   (90, 485),
-                                   x_limit=550,
-                                   line_break=30)
+            # ---------------------------------------------------------------------------- #
+            #                              evil deeds sub tab                              #
+            # ---------------------------------------------------------------------------- #
+            """
+            this will hold history related to 'evil deeds' done by the cat.  atm i plan for this to be:
+            - cats murdered by this cat
+            - if we implement a "corruption" mechanic for living cats targeted by DF then perhaps info on those can
+            be included here?
+            """
+            # commented out until i have info that can be put in this tab
+            #buttons.draw_image_button((710, 549),
+            #                          button_name='sub_tab3',
+            #                          size=(42, 30),
+            #                          sub_tab_group='relation sub tab'
+            #                          )
+            buttons.draw_image_button((710, 586),
+                                      button_name='sub_tab',
+                                      size=(42, 30),
+                                      available=False
+                                      )
 
         # opens backstory tab if clicked
         else:
@@ -807,6 +918,7 @@ class ProfileScreen(Screens):
                                           available=False)
 
             # promote a cat to deputy if no deputy is alive
+            deputy = game.clan.deputy
             if game.clan.deputy is None:
                 deputy = None
             elif game.clan.deputy.exiled:
@@ -1081,31 +1193,8 @@ class ProfileScreen(Screens):
                                   available=game.switches['profile_tab_group'] != 'dangerous'
                                   )
 
+
         if game.switches['profile_tab_group'] == 'dangerous':
-            if not the_cat.dead and not the_cat.exiled:
-                buttons.draw_image_button((578, 450),
-                                        button_name='exile_cat',
-                                        text='exile cat',
-                                        available=True,
-                                        size=(172, 36),
-                                        )
-            else:
-                if not the_cat.df:
-                    buttons.draw_button((600, 460),
-                                        button_name='exile_cat',
-                                        text='Exile to DF',
-                                        available=True,
-                                        cat_value=the_cat,
-                                        size=(172, 36),
-                                        )
-                else:
-                    buttons.draw_button((600, 460),
-                                        button_name='exile_cat',
-                                        text='Exile to DF',
-                                        available=False,
-                                        cat_value=the_cat,
-                                        size=(172, 36),
-                                        )
             # button to kill cat
             if not the_cat.dead and not the_cat.exiled:
                 buttons.draw_image_button((578, 486),
@@ -1122,6 +1211,31 @@ class ProfileScreen(Screens):
                                           kill_cat=the_cat,
                                           available=False
                                           )
+            if not the_cat.dead and not the_cat.exiled:
+                buttons.draw_image_button((578, 450),
+                                          button_name='exile_cat',
+                                          text='exile cat',
+                                          available=True,
+                                          size=(172, 36),
+                                          )
+            else:
+                if not the_cat.df:
+                    buttons.draw_image_button((578, 450),
+                                              button_name='exile_df',
+                                              text='Exile to DF',
+                                              available=True,
+                                              cat_value=the_cat,
+                                              size=(172, 46),
+                                              )
+                else:
+                    buttons.draw_image_button((578, 450),
+                                              button_name='exile_df',
+                                              text='Exile to DF',
+                                              available=False,
+                                              cat_value=the_cat,
+                                              size=(172, 46),
+                                              )
+
 
             # close tab group
             buttons.draw_image_button((578, 522),
@@ -1164,10 +1278,12 @@ class ProfileScreen(Screens):
         biome = biome.lower()
 
         all_platforms = []
-        if the_cat.dead or game.clan.instructor.ID == the_cat.ID:
+        if the_cat.df:
+            dead_platform = [f'{platform_base_dir}darkforestplatform_{light_dark}.png']
+            all_platforms = dead_platform*4
+        elif the_cat.dead or game.clan.instructor.ID == the_cat.ID:
             dead_platform = [f'{platform_base_dir}/starclanplatform_{light_dark}.png']
             all_platforms = dead_platform*4
-
         else:
             for leaf in leaves:
                 platform_dir = f'{platform_base_dir}/{biome}/{leaf}_{light_dark}.png'
