@@ -39,7 +39,8 @@ def draw_back(x_value, y_value):
                                   button_name='back',
                                   text='Back',
                                   size=(105, 30),
-                                  cur_screen='outside profile screen',
+                                  cur_screen='other screen',
+                                  cat_value = the_cat,
                                   profile_tab_group=None,
                                   hotkey=[0])
     elif (the_cat.df):
@@ -618,18 +619,21 @@ class ProfileScreen(Screens):
                 # adjust and append scar events to history
                 if the_cat.scar_event:
                     for x in range(len(the_cat.scar_event)):
-                        not_scarred = [' wounded ', ' injured ', ' battered ', ' hurt ', ' punished ']
                         the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' is ', ' was ', 1)
                         the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' loses ', ' lost ')
                         the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' forces ', ' forced ')
+
+                        not_scarred = ['wounded', 'injured', 'battered', 'hurt', 'punished']
                         for y in not_scarred:
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(f' got {y} ', ' was scarred ')
                             the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(y, ' scarred ')
-                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(' got ', ' was ')
                             break
-                        if x == 1:
+                        if x == 0:
+                            the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(f'{the_cat.name} ', 'This cat ', 1)
+                        elif x == 1:
                             the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(f'{the_cat.name} was ', 'They were also ', 1)
                             the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(str(the_cat.name), 'They also', 1)
-                        if x >= 3:
+                        elif x >= 3:
                             the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(f'{the_cat.name} was ', 'Then they were ', 1)
                             the_cat.scar_event[x] = str(the_cat.scar_event[x]).replace(str(the_cat.name), 'Then they', 1)
                     scar_history = ' '.join(the_cat.scar_event)
@@ -1216,6 +1220,7 @@ class ProfileScreen(Screens):
                                           button_name='exile_cat',
                                           text='exile cat',
                                           available=True,
+                                          cat_value=the_cat,
                                           size=(172, 36),
                                           )
             else:
@@ -1445,6 +1450,46 @@ class GenderChangedScreen(Screens):
 
 
 class ExileProfileScreen(Screens):
+    def update_platform(self):
+        the_cat = Cat.all_cats.get(game.switches['cat'],
+                                         game.clan.instructor)
+        
+        light_dark = "light"
+        if game.settings["dark mode"]:
+            light_dark = "dark"
+
+        platform_base_dir = 'resources/images/platforms/'
+        leaves = ["newleaf", "greenleaf", "leafbare", "leaffall"]
+        
+        available_biome = ['Forest', 'Mountainous', 'Plains', 'Beach']
+        biome = game.clan.biome
+
+        if biome not in available_biome:
+            biome = available_biome[0]
+
+        biome = biome.lower()
+
+        all_platforms = []
+        if the_cat.df:
+            dead_platform = [f'{platform_base_dir}darkforestplatform_{light_dark}.png']
+            all_platforms = dead_platform*4
+        elif the_cat.dead or game.clan.instructor.ID == the_cat.ID:
+            dead_platform = [f'{platform_base_dir}/starclanplatform_{light_dark}.png']
+            all_platforms = dead_platform*4
+        else:
+            for leaf in leaves:
+                platform_dir = f'{platform_base_dir}/{biome}/{leaf}_{light_dark}.png'
+                all_platforms.append(platform_dir)
+
+        self.newleaf_plt = pygame.transform.scale(
+            pygame.image.load(all_platforms[0]).convert_alpha(), (240, 210))
+        self.greenleaf_plt = pygame.transform.scale(
+            pygame.image.load(all_platforms[1]).convert_alpha(), (240, 210))
+        self.leafbare_plt = pygame.transform.scale(
+            pygame.image.load(all_platforms[2]).convert_alpha(), (240, 210))
+        self.leaffall_plt = pygame.transform.scale(
+            pygame.image.load(all_platforms[3]).convert_alpha(), (240, 210))
+        
     def on_use(self):
         # use this variable to point to the cat object in question
         the_cat = Cat.all_cats.get(game.switches['cat'],game.clan.instructor)
@@ -1460,15 +1505,16 @@ class ExileProfileScreen(Screens):
         count2 = 0
         verdana_big.text(cat_name, ('center', 150))  # NAME
 
-        # if game.settings['backgrounds']:  # CAT PLATFORM
-        #     if game.clan.current_season == 'Newleaf':
-        #         screen.blit(self.newleaf_plt, (55, 200))
-        #     elif game.clan.current_season == 'Greenleaf':
-        #         screen.blit(self.greenleaf_plt, (55, 200))
-        #     elif game.clan.current_season == 'Leaf-bare':
-        #         screen.blit(self.leafbare_plt, (55, 200))
-        #     elif game.clan.current_season == 'Leaf-fall':
-        #         screen.blit(self.leaffall_plt, (55, 200))
+        if game.settings['backgrounds']:  # CAT PLATFORM
+            self.update_platform()
+            if game.clan.current_season == 'Newleaf':
+                screen.blit(self.newleaf_plt, (55, 200))
+            elif game.clan.current_season == 'Greenleaf':
+                screen.blit(self.greenleaf_plt, (55, 200))
+            elif game.clan.current_season == 'Leaf-bare':
+                screen.blit(self.leafbare_plt, (55, 200))
+            elif game.clan.current_season == 'Leaf-fall':
+                screen.blit(self.leaffall_plt, (55, 200))
 
         draw_large(the_cat,(100, 200)) # IMAGE
 

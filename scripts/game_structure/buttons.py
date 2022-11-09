@@ -185,8 +185,6 @@ class Button():
         if game.clicked and clickable:
             if apprentice is not None:
                 self.choose_mentor(apprentice, cat_value)
-
-
             elif text in ['Next Cat', 'Previous Cat']:
                 game.switches['cat'] = values.get('cat')
             elif text == 'Prevent kits':
@@ -203,10 +201,7 @@ class Button():
                     game.clan.deputy = None
                 Cat.all_cats[cat_value].exiled = True
                 Cat.other_cats[cat_value] = Cat.all_cats[cat_value]
-            elif text == 'Exile to DF':
-                if Cat.all_cats[str(cat_value)].dead:
-                    Cat.all_cats[str(cat_value)].df = True
-                    Cat.all_cats[str(cat_value)].thought = "Is distraught that they have been sent to the Place of No Stars"
+
             elif text == 'Change to Trans Male':
                 Cat.all_cats[cat_value].genderalign = "trans male"
             elif text == 'Change to Trans Female':
@@ -287,13 +282,20 @@ class Button():
                     cat_value.df = True
                     cat_value.thought = "Is distraught after being sent to the Place of No Stars"
                     game.switches['cur_screen'] = 'dark forest screen'
+                    update_sprite(Cat.all_cats[str(cat_value)])
+            if key == 'text'and value == 'exile cat':
+                cat_value = Cat.all_cats[str(values['cat_value'])]
+                if not cat_value.dead and not cat_value.exiled:
+                    cat_value.exiled = True
+                    cat_value.thought = "Is shocked that they have been exiled"
+                    game.switches['cur_screen'] = 'other screen'
             if cat_value is None:
                 if key in game.switches.keys():
                     if not add:
                         if key == 'cur_screen' and game.switches[
                                 'cur_screen'] in [
                                     'list screen', 'clan screen',
-                                    'starclan screen'
+                                    'starclan screen', 'outside screen'
                                 ]:
                             game.switches['last_screen'] = game.switches[
                                 'cur_screen']
