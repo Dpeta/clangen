@@ -3,7 +3,7 @@ name: Tests
 on: [push]
 
 jobs:
-  build_linux64:
+  unittest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -14,15 +14,44 @@ jobs:
           architecture: 'x64'
       - name: Install depends
         run: python -m pip install --pre pygame ujson pygame mock
-      - name: Run tests (unittest)
+      - name: Test relationships
         env:
           SDL_VIDEODRIVER: "dummy"
           SDL_AUDIODRIVER: "disk"
-        run: |
-          python3 -m unittest tests/test_thoughts.py
-          python3 -m unittest tests/test_relationships.py
-          python3 -m unittest tests/test_relation_events.py
-          python3 -m unittest tests/test_patrol.py
-          python3 -m unittest tests/test_conditions.py
-          python3 -m unittest tests/test_utility.py
-          python3 -m unittest tests/test_cat.py
+        run: python3 -m unittest tests/test_relationships.py
+      - name: Test thoughts
+        env:
+          SDL_VIDEODRIVER: "dummy"
+          SDL_AUDIODRIVER: "disk"
+        run: python3 -m unittest tests/test_thoughts.py
+      - name: Test relationship events
+        env:
+          SDL_VIDEODRIVER: "dummy"
+          SDL_AUDIODRIVER: "disk"
+        run: python3 -m unittest tests/test_relation_events.py
+      - name: Test patrol
+        env:
+          SDL_VIDEODRIVER: "dummy"
+          SDL_AUDIODRIVER: "disk"
+        run: python3 -m unittest tests/test_patrol.py
+      - name: Test conditions
+        env:
+          SDL_VIDEODRIVER: "dummy"
+          SDL_AUDIODRIVER: "disk"
+        run: python3 -m unittest tests/test_conditions.py
+      - name: Test utility
+        env:
+          SDL_VIDEODRIVER: "dummy"
+          SDL_AUDIODRIVER: "disk"
+        run: python3 -m unittest tests/test_utility.py
+      - name: Test cat
+        env:
+          SDL_VIDEODRIVER: "dummy"
+          SDL_AUDIODRIVER: "disk"
+        run: python3 -m unittest tests/test_cat.py
+          
+          
+          
+          
+          
+          
