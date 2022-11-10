@@ -1,10 +1,10 @@
-name: PyInstaller build
+name: Tests
 
 on: [push]
 
 jobs:
   build_linux64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python 3.11 x64
@@ -14,8 +14,15 @@ jobs:
           architecture: 'x64'
       - name: Install depends
         run: python -m pip install --pre pygame ujson pygame mock
-      - name: Run pytest
+      - name: Run tests (unittest)
         env:
           SDL_VIDEODRIVER: "dummy"
           SDL_AUDIODRIVER: "disk"
-        run: python3 -m unittest tests/test_cat.py
+        run: |
+          python3 -m unittest tests/test_thoughts.py
+          python3 -m unittest tests/test_relationships.py
+          python3 -m unittest tests/test_relation_events.py
+          python3 -m unittest tests/test_patrol.py
+          python3 -m unittest tests/test_conditions.py
+          python3 -m unittest tests/test_utility.py
+          python3 -m unittest tests/test_cat.py
