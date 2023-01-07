@@ -44,6 +44,7 @@ class Name():
         'Smoke': ['fade', 'dusk', 'dawn', 'smoke'],
         'Ticked': ['spots', 'pelt', 'speckle', 'freckle'],
         'SpeckledTabby': ['stripe', 'feather', 'leaf', 'stripe', 'shade', 'dapple', 'speckle', 'spot', 'speck', 'freckle', 'stripe', 'feather', 'leaf', 'stripe', 'shade'],
+        'Stain': ['dapple', 'speckle', 'spot', 'speck', 'freckle']
     }
 
     tortie_pelt_suffixes = {
@@ -56,6 +57,7 @@ class Name():
         'tortierosette': ['dapple', 'speckle', 'spots', 'dapple', 'fern', 'freckle'],
         'tortiespeckled': ['dapple', 'speckle', 'spot', 'speck', 'freckle'],
         'tortiespeckledtabby': ['stripe', 'feather', 'leaf', 'stripe', 'shade', 'fern', 'dapple', 'speckle', 'spot', 'speck', 'freckle'],
+        'tortiecombo': ['spots', 'speckle', 'speck']
     }
 
     normal_prefixes = [
