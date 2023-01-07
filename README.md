@@ -1,7 +1,10 @@
 # clangen - modded
 The original thing does NOT belong to me! it's only modded by me, and this is to let people have easier time getting themselves the game with my mods.
 
-
+.
+.
+.
+.
 
 Here's info from the Original Clangen Info:
 
