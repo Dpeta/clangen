@@ -656,7 +656,7 @@ class ViewChildrenScreen(Screens):
                                                                          object_id="#cat_patrol_info_box")
         else:
             for kitty in self.the_cat.mates:
-                if kitty in Cat.all_cats:
+                if kitty.ID in Cat.all_cats:
                     self.family_elements["mate_image"] = UISpriteButton(scale(pygame.Rect((196, 916), (100, 100))),
                                                                         Cat.all_cats[self.the_cat.mate].big_sprite,
                                                                         cat_id=self.the_cat.mate, manager=MANAGER)
@@ -1052,7 +1052,7 @@ class ChooseMateScreen(Screens):
 
         # Determine what to draw regarding the othe cat. If they have a mate, set the screen up for that.
         # if they don't, set the screen up to choose a mate.
-        if self.the_cat.mate:
+        if self.the_cat.mates:
             self.update_mate_screen()
         else:
             self.update_choose_mate()
@@ -1079,7 +1079,11 @@ class ChooseMateScreen(Screens):
             self.mate_elements[ele].kill()
         self.mate_elements = {}
 
-        self.selected_cat = Cat.all_cats[choice(self.the_cat.mates)]
+        partner = choice(self.the_cat.mates)
+        print(f"partner is {partner}")
+        if partner not in Cat.all_cats:
+            return
+        self.selected_cat = Cat.all_cats[partner]
 
         self.draw_compatible_line_affection()
         self.mate_elements["center_heart"] = pygame_gui.elements.UIImage(scale(pygame.Rect((600, 376), (400, 156))),

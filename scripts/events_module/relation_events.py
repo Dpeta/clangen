@@ -56,7 +56,7 @@ class Relation_Events():
             # get some cats to make easier checks
             cat_from = current_relationship.cat_from
             for kitty in cat_from.mates:
-                if kitty not in Cat.all_cats:
+                if kitty.ID not in Cat.all_cats:
                     print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
                     cat_from.mates = []
                     return
@@ -66,7 +66,7 @@ class Relation_Events():
             cat_to = current_relationship.cat_to
             cat_to_mate = None
             for kitty in cat_to.mates:
-                if kitty not in Cat.all_cats:
+                if kitty.ID not in Cat.all_cats:
                     print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
                     cat_to.mates = []
                     return
@@ -311,7 +311,7 @@ class Relation_Events():
         from_mate_in_clan = False
         if cat_from.mates:
             for kitty in cat_from.mates:
-                if kitty not in Cat.all_cats.keys():
+                if kitty.ID not in Cat.all_cats.keys():
                     print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
                     cat_from.mates.delete(kitty)
                     return
@@ -674,13 +674,16 @@ class Relation_Events():
 
         # check for mate
         mate = None
-        if cat.mate:
-            if cat.mate not in cat.all_cats:
-                print(f"WARNING: {str(cat.name)}  has an invalid mate # {str(cat.mate)}. This has been unset.")
-                cat.mate = None
+        print(f"all cats are {cat.all_cats}")
+        print(f"mates r {cat.mates}")
+        if cat.mates:
+            for kitty in cat.mates:
+                if kitty.ID not in cat.all_cats:
+                    print(f"WARNING: {str(cat.name)}  has an invalid mate # {kitty}. This has been unset.")
+                    cat.mates.remove(kitty)
 
         # If the "no unknown fathers setting in on, we should only allow cats that have mates to have kits.
-        if not unknown_parent_setting and not cat.mate:
+        if not unknown_parent_setting and not cat.mates:
             return False
 
         # if function reaches this point, having kits is possible

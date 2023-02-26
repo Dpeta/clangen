@@ -234,8 +234,8 @@ class NewCatEvents:
             # parents for the babies
             if (kit or litter) and relevant_cat and relevant_cat.ID in Cat.all_cats:
                 new_cat.parent1 = relevant_cat.ID
-                if relevant_cat.mate:
-                    new_cat.parent2 = relevant_cat.mate
+                if relevant_cat.mates:
+                    new_cat.parent2 = random.choice(relevant_cat.mates)
 
             # create and update relationships
             for the_cat in new_cat.all_cats.values():
