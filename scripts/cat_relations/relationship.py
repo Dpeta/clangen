@@ -80,7 +80,7 @@ class Relationship():
                 comfortable = 10 + y
                 trust = 0 + y
 
-        if self.cat_from.mate is not None and self.cat_from.mate == self.cat_to.ID:
+        if self.cat_from.mates and self.cat_to in self.cat_from.mates:
             self.mates = True
             if romantic_love == 0:
                 romantic_love = 20 + y
@@ -109,7 +109,7 @@ class Relationship():
     def start_action(self):
         """This function checks current state of relationship and decides which actions can happen."""
         # update relationship
-        if self.cat_from.mate == self.cat_to.ID:
+        if self.cat_to in self.cat_from.mates:
             self.mates = True
 
         # check if opposite_relationship is here, otherwise creates it
@@ -216,7 +216,7 @@ class Relationship():
                 not self.cat_to.is_potential_mate(self.cat_from, for_love_interest=True):
             return self.get_non_romantic_action_possibilities()
 
-        love_chance = 20
+        love_chance = 10
 
         if self.mates and self.romantic_love > 30 and self.opposite_relationship.romantic_love > 25:
             love_chance -= 18
@@ -229,8 +229,8 @@ class Relationship():
         elif self.platonic_like > 30 or self.romantic_love > 5:
             love_chance -= 3
 
-        if self.cat_from.mate is None and self.cat_to.mate is None:
-            love_chance -= 10
+        #if not self.cat_from.mates and not self.cat_to.mates:
+        #    love_chance -= 10
 
         # decide which action (romantic or not) are done
         no_hit = randint(0, love_chance)
@@ -523,7 +523,7 @@ class Relationship():
             return
 
         # update relationship
-        if self.cat_from.mate == self.cat_to.ID:
+        if self.cat_to in self.cat_from.mates:
             self.mates = True
 
         # check if opposite_relationship is here, otherwise creates it

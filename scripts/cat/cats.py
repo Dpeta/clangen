@@ -1968,7 +1968,7 @@ class Cat():
                     relation.platonic_like -= 30
 
         if cat in self.mates:
-            self.mates.delete(cat)
+            self.mates.remove(cat)
 
     def set_mate(self, other_cat: Cat):
         """Assigns other_cat as mate to self."""
@@ -2151,7 +2151,7 @@ class Cat():
 
         # Are they mates?
         mates = False
-        if self.all_cats.get(rel1.cat_from.ID) in rel1.cat_to.mates:
+        if Cat.all_cats.get(rel1.cat_from.ID) in rel1.cat_to.mates:
             mates = True
 
         # Relation Checking

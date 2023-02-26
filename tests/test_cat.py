@@ -286,16 +286,16 @@ class TestMateFunctions(unittest.TestCase):
         # given
         cat1 = Cat()
         cat2 = Cat()
-        cat1.mate = cat2.ID
-        cat2.mate = cat1.ID
+        cat1.mates.append(cat2.ID)
+        cat2.mates.append(cat1.ID)
 
         # when
-        cat1.unset_mate()
-        cat2.unset_mate()
+        cat1.unset_mate(cat2)
+        cat2.unset_mate(cat1)
 
         # then
-        self.assertEqual(cat1.mate,None)
-        self.assertEqual(cat2.mate,None)
+        self.assertEqual(cat1.mates, [])
+        self.assertEqual(cat2.mates, [])
 
     def test_set_mate_relationship(self):
         # given
@@ -345,8 +345,8 @@ class TestMateFunctions(unittest.TestCase):
         cat2.relationships[cat1.ID] = relation2
 
         # when
-        cat1.unset_mate(breakup=True)
-        cat2.unset_mate(breakup=True)
+        cat1.unset_mate(cat2, breakup=True)
+        cat2.unset_mate(cat1, breakup=True)
 
         # then
         # TODO: maybe not correct check

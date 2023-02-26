@@ -806,18 +806,19 @@ class ProfileScreen(Screens):
                 output += ' moons'
 
         # MATE
-        if the_cat.mate is not None and not the_cat.dead:
+        if the_cat.mates and not the_cat.dead:
             # NEWLINE ----------
             output += "\n"
-            if the_cat.mate in Cat.all_cats:
-                if Cat.all_cats.get(
-                        the_cat.mate
-                ).dead:
-                    output += 'former mate: ' + str(Cat.all_cats[the_cat.mate].name)
+            for kitty in the_cat.mates:
+                if kitty in Cat.all_cats:
+                    if Cat.all_cats.get(
+                            kitty
+                    ).dead:
+                        output += 'former mate: ' + str(Cat.all_cats[kitty].name)
+                    else:
+                        output += 'mate: ' + str(Cat.all_cats[kitty].name)
                 else:
-                    output += 'mate: ' + str(Cat.all_cats[the_cat.mate].name)
-            else:
-                output += 'Error: mate: ' + str(the_cat.mate) + " not found"
+                    output += 'Error: mate: ' + str(kitty) + " not found"
 
         if not the_cat.dead:
             # NEWLINE ----------

@@ -86,7 +86,7 @@ class Game():
         'cur_screen': 'start screen',
         'naming_text': '',
         'timeskip': False,
-        'mate': None,
+        'mates': [],
         'choosing_mate': False,
         'mentor': None,
         'setting': None,
@@ -353,7 +353,7 @@ class Game():
                 "former_mentor": [cat for cat in inter_cat.former_mentor] if inter_cat.former_mentor else [],
                 "patrol_with_mentor": inter_cat.patrol_with_mentor if inter_cat.patrol_with_mentor else 0,
                 "mentor_influence": inter_cat.mentor_influence if inter_cat.mentor_influence else [],
-                "mate": inter_cat.mate,
+                "mates": inter_cat.mates,
                 "dead": inter_cat.dead,
                 "died_by": inter_cat.died_by if inter_cat.died_by else [],
                 "paralyzed": inter_cat.paralyzed,
@@ -427,9 +427,9 @@ class Game():
             self.clan.faded_ids.append(cat)
 
             # If they have a mate, break it up
-            if inter_cat.mate:
-                if inter_cat.mate in self.cat_class.all_cats:
-                    self.cat_class.all_cats[inter_cat.mate].mate = None
+            for meowmeow in inter_cat.mates:
+                if meowmeow in self.cat_class.all_cats:
+                    self.cat_class.all_cats[meowmeow].mate = None
 
             # If they have parents, add them to their parents "faded offspring" list:
             if inter_cat.parent1:
@@ -468,7 +468,7 @@ class Game():
                 "former_mentor": {inter_cat.former_mentor if inter_cat.former_mentor else []},
                 "patrol_with_mentor": {inter_cat.patrol_with_mentor if inter_cat.patrol_with_mentor else 0},
                 "mentor_influence": {inter_cat.mentor_influence if inter_cat.mentor_influence else []},
-                "mate": {inter_cat.mate},
+                "mates": {inter_cat.mates},
                 "dead": {inter_cat.dead},
                 "died_by": {inter_cat.died_by if inter_cat.died_by else []},
                 "paralyzed": {inter_cat.paralyzed},

@@ -84,8 +84,7 @@ class Relation_Events():
                         # game.relation_events_list.insert(0, text)
                         game.cur_events_list.append(Single_Event(text, "relation", [cat_from.ID, kitty.ID]))
                         current_relationship.mate = False
-                        cat_from.mate = None
-                        cat_from_mate.mate = None
+                        cat_from.mates.remove(kitty)
 
             # new mates
             if not self.had_one_event:

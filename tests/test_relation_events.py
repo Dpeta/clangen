@@ -37,6 +37,7 @@ class Pregnancy(unittest.TestCase):
     @patch('scripts.events_module.relation_events.Relation_Events.check_if_can_have_kits')
     def test_pair(self, check_if_can_have_kits):
         # FIXME
+        pass
 
 
 class Mates(unittest.TestCase):
