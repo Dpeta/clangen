@@ -656,14 +656,14 @@ class ViewChildrenScreen(Screens):
                                                                          object_id="#cat_patrol_info_box")
         else:
             for kitty in self.the_cat.mates:
-                if kitty.ID in Cat.all_cats:
+                if kitty in Cat.all_cats:
                     self.family_elements["mate_image"] = UISpriteButton(scale(pygame.Rect((196, 916), (100, 100))),
-                                                                        Cat.all_cats[self.the_cat.mate].big_sprite,
-                                                                        cat_id=self.the_cat.mate, manager=MANAGER)
+                                                                        Cat.all_cats[kitty].big_sprite,
+                                                                        cat_id=kitty, manager=MANAGER)
 
-                    name = str(Cat.all_cats[self.the_cat.mate].name)
+                    name = str(Cat.all_cats[kitty].name)
                     if len(name) >= 9:
-                        short_name = str(Cat.all_cats[self.the_cat.mate].name)[0:7]
+                        short_name = str(Cat.all_cats[kitty].name)[0:7]
                         name = short_name + '...'
                     self.family_elements["mate_name"] = pygame_gui.elements.UITextBox(name,
                                                                                       scale(pygame.Rect((180, 1016), (120, 60))),
@@ -909,8 +909,8 @@ class ChooseMateScreen(Screens):
 
             if event.ui_element == self.toggle_mate:
                 if not self.the_cat.mate:
-                    self.the_cat.mates.append(self.selected_cat)
-                    self.selected_cat.mates.append(self.the_cat)
+                    self.the_cat.mates.append(self.selected_cat.ID)
+                    self.selected_cat.mates.append(self.the_cat.ID)
                     self.update_mate_screen()
                 else:
                     self.the_cat.unset_mate(self.selected_cat, breakup=True)
@@ -1390,7 +1390,7 @@ class ChooseMateScreen(Screens):
 
             if not related and relevant_cat.ID != self.the_cat.ID and invalid_age \
                     and not not_available and not relevant_cat.mates:
-                valid_mates.append(relevant_cat)
+                valid_mates.append(relevant_cat.ID)
 
         return valid_mates
 

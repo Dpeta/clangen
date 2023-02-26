@@ -810,7 +810,7 @@ class ProfileScreen(Screens):
             # NEWLINE ----------
             output += "\n"
             for kitty in the_cat.mates:
-                if kitty.ID in Cat.all_cats:
+                if kitty in Cat.all_cats:
                     if Cat.all_cats.get(
                             kitty
                     ).dead:

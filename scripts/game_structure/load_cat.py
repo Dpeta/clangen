@@ -96,8 +96,7 @@ def json_load():
                     new_cat.scars.append(cat["specialty2"])
 
             new_cat.accessory = cat["accessory"]
-            for meowmeow in cat["mates"]:
-                new_cat.mates.append(Cat.all_cats.get(meowmeow))
+            new_cat.mates = cat["mates"]
             new_cat.dead = cat["dead"]
             new_cat.died_by = cat["died_by"] if "died_by" in cat else []
             new_cat.age_sprites['dead'] = cat["spirit_dead"]

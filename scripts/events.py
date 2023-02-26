@@ -1490,7 +1490,7 @@ class Events():
             dead_cats = random.sample(alive_cats, dead_count)
             for kitty in dead_cats:  # use "kitty" to not redefine "cat"
                 dead_names.append(kitty.name)
-                involved_cats.append(kitty.ID)
+                involved_cats.append(kitty)
             names = f"{dead_names.pop(0)}"  # Get first
             if dead_names:
                 last_name = dead_names.pop()  # Get last

@@ -56,19 +56,21 @@ class Relation_Events():
             # get some cats to make easier checks
             cat_from = current_relationship.cat_from
             for kitty in cat_from.mates:
-                if kitty.ID not in Cat.all_cats:
-                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
-                    cat_from.mates = []
+                #print(f"Is {kitty} of type {type(kitty)} in {Cat.all_cats} {kitty not in Cat.all_cats}?")
+                if kitty not in Cat.all_cats:
+                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none. (handle_relationships block 1)")
+                    cat_from.mates.remove(kitty)
                     return
                 
             
 
             cat_to = current_relationship.cat_to
             cat_to_mate = None
+            #print(f"cat {cat_to.ID} has the mate mate is {cat_to.mates}")
             for kitty in cat_to.mates:
-                if kitty.ID not in Cat.all_cats:
-                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
-                    cat_to.mates = []
+                if kitty not in Cat.all_cats:
+                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none. (handle_relationships block 2)")
+                    cat_to.mates.remove(kitty)
                     return
 
             if not current_relationship.opposite_relationship:
@@ -76,13 +78,14 @@ class Relation_Events():
 
             # overcome dead mates
             for kitty in cat_from.mates:
-                if kitty and kitty.dead and kitty.dead_for >= 4 and "grief stricken" not in kitty.illnesses:
+                kitty_cat = Cat.all_cats.get(kitty)
+                if kitty_cat and kitty_cat.dead and kitty_cat.dead_for >= 4 and "grief stricken" not in kitty_cat.illnesses:
                     # randint is a slow function, don't call it unless we have to.
                     if random.random() > 0.96:  # Roughly 1/25
                         self.had_one_event = True
-                        text = f'{cat_from.name} will always love {kitty.name} but has decided to move on.'
+                        text = f'{cat_from.name} will always love {kitty_cat.name} but has decided to move on.'
                         # game.relation_events_list.insert(0, text)
-                        game.cur_events_list.append(Single_Event(text, "relation", [cat_from.ID, kitty.ID]))
+                        game.cur_events_list.append(Single_Event(text, "relation", [cat_from.ID, kitty]))
                         current_relationship.mate = False
                         cat_from.mates.remove(kitty)
 
@@ -178,7 +181,7 @@ class Relation_Events():
             return
 
         # Roll to see if the cat will have kits.
-        if cat.mate:
+        if cat.mates:
             chance = game.config["pregnancy"]["primary_chance_mated"]
         else:
             chance = game.config["pregnancy"]["primary_chance_unmated"]
@@ -189,12 +192,13 @@ class Relation_Events():
 
             # DETERMINE THE SECOND PARENT
             mate = None
-            if cat.mate:
-                if cat.mate in Cat.all_cats:
-                    mate = Cat.all_cats[cat.mate]
-                else:
-                    print(f"WARNING: {cat.name}  has an invalid mate # {cat.mate}. This has been unset.")
-                    cat.mate = None
+            if cat.mates:
+                for kitty in cat.mates:
+                    if kitty in Cat.all_cats:
+                        mate = Cat.all_cats[kitty]
+                    else:
+                        print(f"WARNING: {cat.name}  has an invalid mate # {cat.mate}. This has been unset. (handle_having_kits)")
+                        cat.mate = None
 
             # check if there is a cat in the clan for the second parent
             second_parent, affair = self.get_second_parent(cat, mate, game.settings['affair'])
@@ -303,16 +307,17 @@ class Relation_Events():
 
         if become_mates and mate_string:
             self.had_one_event = True
-            cat_from.mates.append(cat_to)
-            cat_to.mates.append(cat_from)
+            cat_from.mates.append(cat_to.ID)
+            cat_to.mates.append(cat_from.ID)
             game.cur_events_list.append(Single_Event(mate_string, "relation", [cat_from.ID, cat_to.ID]))
 
     def handle_breakup(self, relationship_from, relationship_to, cat_from, cat_to):
         from_mate_in_clan = False
+        print("the matesies is {cat_from.mates}.")
         if cat_from.mates:
             for kitty in cat_from.mates:
-                if kitty.ID not in Cat.all_cats.keys():
-                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
+                if kitty not in Cat.all_cats.keys():
+                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none. (handle_breakup)")
                     cat_from.mates.delete(kitty)
                     return
                 cat_from_mate = Cat.all_cats.get(kitty)
@@ -351,8 +356,8 @@ class Relation_Events():
         cat_to = highest_romantic_relation.cat_to
         if cat_to.is_potential_mate(cat) and cat.is_potential_mate(cat_to):
             self.had_one_event = True
-            cat.mates.append(cat_to)
-            cat_to.mates.append(cat)
+            cat.mates.append(cat_to.ID)
+            cat_to.mates.append(cat.ID)
             first_name = cat.name
             second_name = cat_to.name
 
@@ -488,7 +493,7 @@ class Relation_Events():
                                f"Whenever someone asks whether {str(cat.name)} will be alright raising their {insert} alone, they just smile, and reply that everything is going to work out fine.",
                                f"A {insert}! {str(cat.name)} welcomes them happily, and seems unperturbed by the lack of a partner in the nursery with them."
                                ]
-        elif cat.mate == other_cat.ID and not other_cat.dead and not other_cat.outside:
+        elif other_cat.ID in cat.mates and not other_cat.dead and not other_cat.outside:
             involved_cats.append(other_cat.ID)
             possible_events = [f"{str(cat.name)} had a {insert} with {str(other_cat.name)}.",
                                f"In the nursery, {str(cat.name)} lies suckling a {insert}, {str(other_cat.name)} watching over them and purring so hard their body vibrates.",
@@ -502,7 +507,7 @@ class Relation_Events():
                                f"{str(cat.name)} and {str(other_cat.name)} were so busy worrying about and looking forward to the birth that it's only now that they look at their {insert}, and wonder what to name them.",
                                f"Purring with {str(other_cat.name)} against their back, {str(cat.name)} feels like they're going to explode with love, looking at their tiny new {insert}."
                                ]
-        elif cat.mate == other_cat.ID and other_cat.dead or other_cat.outside:
+        elif other_cat.ID in cat.mates and other_cat.dead or other_cat.outside:
             involved_cats.append(other_cat.ID)
             possible_events = [
                 f"{str(cat.name)} looks at their {insert}, choking on both a purr and a wail. How are they supposed to do this without {str(other_cat.name)}?",
@@ -513,7 +518,7 @@ class Relation_Events():
                 f"It's so hard, so very, very, nearly insurmountably hard doing this without their mate, but {str(cat.name)} wouldn't change it for the world. This {insert} is the last piece of {str(other_cat.name)} they have."
 
             ]
-        elif cat.mate != other_cat.ID and cat.mate is not None:
+        elif other_cat.ID not in cat.mates and cat.mate is not None:
             involved_cats.append(other_cat.ID)
             possible_events = [f"{str(cat.name)} secretly had a {insert} with {str(other_cat.name)}.",
                                f"{str(cat.name)} hopes that their {insert} doesn't look too much like "
@@ -674,12 +679,12 @@ class Relation_Events():
 
         # check for mate
         mate = None
-        print(f"all cats are {cat.all_cats}")
-        print(f"mates r {cat.mates}")
+        #print(f"all cats are {cat.all_cats}")
+        #print(f"mates r {cat.mates}")
         if cat.mates:
             for kitty in cat.mates:
-                if kitty.ID not in cat.all_cats:
-                    print(f"WARNING: {str(cat.name)}  has an invalid mate # {kitty}. This has been unset.")
+                if kitty not in cat.all_cats:
+                    print(f"WARNING: {str(cat.name)}  has an invalid mate # {kitty}. This has been unset. (check_if_can_have_kits)")
                     cat.mates.remove(kitty)
 
         # If the "no unknown fathers setting in on, we should only allow cats that have mates to have kits.

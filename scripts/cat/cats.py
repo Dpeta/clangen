@@ -1942,10 +1942,13 @@ class Cat():
             if not game.settings['first_cousin_mates']:
                 if self.is_cousin(other_cat):
                     return False
-
         else:
             if self.is_sibling(other_cat) or other_cat.is_sibling(self):
                 return False
+
+        # No clone polycule!!!
+        if self.ID in other_cat.mates or other_cat.ID in self.mates:
+            return False
 
         if abs(self.moons - other_cat.moons) > 40:
             return False
@@ -1972,8 +1975,8 @@ class Cat():
 
     def set_mate(self, other_cat: Cat):
         """Assigns other_cat as mate to self."""
-        self.mates.append(self.all_cats.get(other_cat.ID))
-        other_cat.mates.append(self.all_cats.get(self.ID))
+        self.mates.append(other_cat.ID)
+        other_cat.mates.append(self.ID)
 
         if other_cat.ID in self.relationships:
             cat_relationship = self.relationships[other_cat.ID]
