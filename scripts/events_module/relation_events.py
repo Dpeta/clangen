@@ -55,45 +55,48 @@ class Relation_Events():
             current_relationship = list(cat.relationships.values())[random_index]
             # get some cats to make easier checks
             cat_from = current_relationship.cat_from
-            cat_from_mate = None
-            if cat_from.mate:
-                if cat_from.mate not in Cat.all_cats:
+            for kitty in cat_from.mates:
+                if kitty not in Cat.all_cats:
                     print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
-                    cat_from.mate = None
+                    cat_from.mates = []
                     return
-                cat_from_mate = Cat.all_cats.get(cat_from.mate)
+                
+            
 
             cat_to = current_relationship.cat_to
             cat_to_mate = None
-            if cat_to.mate:
-                if cat_to.mate not in Cat.all_cats:
-                    print(f"WARNING: Cat #{cat_to} has a invalid mate. It will set to none.")
-                    cat_to.mate = None
+            for kitty in cat_to.mates:
+                if kitty not in Cat.all_cats:
+                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
+                    cat_to.mates = []
                     return
-                cat_to_mate = Cat.all_cats.get(cat_to.mate)
 
             if not current_relationship.opposite_relationship:
                 current_relationship.link_relationship()
 
             # overcome dead mates
-            if cat_from_mate and cat_from_mate.dead and cat_from_mate.dead_for >= 4 and "grief stricken" not in cat_from.illnesses:
-                # randint is a slow function, don't call it unless we have to.
-                if random.random() > 0.96:  # Roughly 1/25
-                    self.had_one_event = True
-                    text = f'{cat_from.name} will always love {cat_from_mate.name} but has decided to move on.'
-                    # game.relation_events_list.insert(0, text)
-                    game.cur_events_list.append(Single_Event(text, "relation", [cat_from.ID, cat_from_mate.ID]))
-                    current_relationship.mate = False
-                    cat_from.mate = None
-                    cat_from_mate.mate = None
+            for kitty in cat_from.mates:
+                if kitty and kitty.dead and kitty.dead_for >= 4 and "grief stricken" not in kitty.illnesses:
+                    # randint is a slow function, don't call it unless we have to.
+                    if random.random() > 0.96:  # Roughly 1/25
+                        self.had_one_event = True
+                        text = f'{cat_from.name} will always love {kitty.name} but has decided to move on.'
+                        # game.relation_events_list.insert(0, text)
+                        game.cur_events_list.append(Single_Event(text, "relation", [cat_from.ID, kitty.ID]))
+                        current_relationship.mate = False
+                        cat_from.mate = None
+                        cat_from_mate.mate = None
 
             # new mates
-            if not self.had_one_event and not cat_from_mate:
+            if not self.had_one_event:
                 if cat_to.is_potential_mate(cat_from):
                     self.handle_new_mates(current_relationship, cat_from, cat_to)
 
+
+            # FIXME: for poly meowmeows!!
+            """
             # breakup and new mate
-            if (not self.had_one_event and cat_from.mate and
+            if (not self.had_one_event and cat_from.mates and
                     cat_from.is_potential_mate(cat_to) and cat_to.is_potential_mate(cat_from)
             ):
                 love_over_30 = current_relationship.romantic_love > 30 and current_relationship.opposite_relationship.romantic_love > 30
@@ -140,7 +143,8 @@ class Relation_Events():
                     # game.relation_events_list.insert(0, text)
                     game.cur_events_list.append(Single_Event(text, "relation", [cat_from.ID, cat_to.ID]))
                     self.handle_new_mates(current_relationship, cat_from, cat_to)
-
+            """
+            
             # breakup
             if not self.had_one_event and current_relationship.mates and not cat_from.dead and not cat_to.dead:
                 if self.check_if_breakup(current_relationship, current_relationship.opposite_relationship, cat_from,
@@ -300,19 +304,21 @@ class Relation_Events():
 
         if become_mates and mate_string:
             self.had_one_event = True
-            cat_from.set_mate(cat_to)
-            cat_to.set_mate(cat_from)
+            cat_from.mates.append(cat_to)
+            cat_to.mates.append(cat_from)
             game.cur_events_list.append(Single_Event(mate_string, "relation", [cat_from.ID, cat_to.ID]))
 
     def handle_breakup(self, relationship_from, relationship_to, cat_from, cat_to):
         from_mate_in_clan = False
-        if cat_from.mate:
-            if cat_from.mate not in Cat.all_cats.keys():
-                print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
-                cat_from.mate = None
-                return
-            cat_from_mate = Cat.all_cats.get(cat_from.mate)
-            from_mate_in_clan = cat_from_mate.is_alive() and not cat_from_mate.outside
+        if cat_from.mates:
+            for kitty in cat_from.mates:
+                if kitty not in Cat.all_cats.keys():
+                    print(f"WARNING: Cat #{cat_from} has a invalid mate. It will set to none.")
+                    cat_from.mates.delete(kitty)
+                    return
+                cat_from_mate = Cat.all_cats.get(kitty)
+                if kitty.is_alive() and not kitty.outside:
+                    from_mate_in_clan = True
 
         if not self.had_one_event and relationship_from.mates and from_mate_in_clan:
             if self.check_if_breakup(relationship_from, relationship_to, cat_from, cat_to):
@@ -345,30 +351,29 @@ class Relation_Events():
 
         cat_to = highest_romantic_relation.cat_to
         if cat_to.is_potential_mate(cat) and cat.is_potential_mate(cat_to):
-            if cat_to.mate is None and cat.mate is None:
-                self.had_one_event = True
-                cat.set_mate(cat_to)
-                cat_to.set_mate(cat)
-                first_name = cat.name
-                second_name = cat_to.name
+            self.had_one_event = True
+            cat.mates.append(cat_to)
+            cat_to.mates.append(cat)
+            first_name = cat.name
+            second_name = cat_to.name
 
-                if highest_romantic_relation.opposite_relationship is None:
-                    highest_romantic_relation.link_relationship()
+            if highest_romantic_relation.opposite_relationship is None:
+                highest_romantic_relation.link_relationship()
 
-                if highest_romantic_relation.opposite_relationship.romantic_love > max_love_value:
-                    first_name = cat_to.name
-                    second_name = cat.name
+            if highest_romantic_relation.opposite_relationship.romantic_love > max_love_value:
+                first_name = cat_to.name
+                second_name = cat.name
 
-                if highest_romantic_relation.opposite_relationship.romantic_love <= lower_threshold:
-                    text = f"{first_name} confessed their feelings to {second_name}, but they got rejected."
-                    # game.relation_events_list.insert(0, text)
-                    game.cur_events_list.append(Single_Event(text, "relation", [cat.ID, cat_to.ID]))
-                    return False
-                else:
-                    text = f"{first_name} confessed their feelings to {second_name} and they have become mates."
-                    # game.relation_events_list.insert(0, text)
-                    game.cur_events_list.append(Single_Event(text, "relation", [cat.ID, cat_to.ID]))
-                    return True
+            if highest_romantic_relation.opposite_relationship.romantic_love <= lower_threshold:
+                text = f"{first_name} confessed their feelings to {second_name}, but they got rejected."
+                # game.relation_events_list.insert(0, text)
+                game.cur_events_list.append(Single_Event(text, "relation", [cat.ID, cat_to.ID]))
+                return False
+            else:
+                text = f"{first_name} confessed their feelings to {second_name} and they have become mates."
+                # game.relation_events_list.insert(0, text)
+                game.cur_events_list.append(Single_Event(text, "relation", [cat.ID, cat_to.ID]))
+                return True
         return False
 
     def handle_zero_moon_pregnant(self, cat, other_cat=None, relation=None, clan=game.clan):

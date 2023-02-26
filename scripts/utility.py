@@ -373,8 +373,8 @@ def event_text_adjust(Cat,
     if other_cat is not None:
         other_name = str(other_cat.name)
     mate = None
-    if cat.mate is not None:
-        mate = Cat.all_cats.get(cat.mate).name
+    if cat.mates:
+        mate = Cat.all_cats.get(random.choice(cat.mates)).name
 
     adjust_text = text
     if keep_m_c is False:
