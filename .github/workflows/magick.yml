@@ -1,0 +1,9 @@
+name: Magick
+on: push
+jobs:
+  magick:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run identify
+        run: identify sprites/*
