@@ -257,11 +257,7 @@
     "Velociraptor", "Fiolett", "Vivienne", "Void", "Voltage", "Vox", "Virgo", "Wanda", "Warren Peace", "Webby", "Wendy", "Whiskers",
     "Hviske", "Wigglebutt", "Wiggity Wacks", "Windy", "Wishbone", "Wisp", "Blåregn", "Whiz Kid", "Worm", "X'ek",
     "Xelle", "Yaoyao", "Yen", "Yeza", "Yoshi", "Zelda", "Zim", "Zoe", "Zorro"
-    ]
-}
-    "Agouti": ["back", "pelt", "fur"],
-    "Singlestripe": ["stripe", "streak", "back", "shade", "stem", "shadow"]
-  },
+    ],
   "tortie_pelt_suffixes": {
     "solid": ["dapple", "speckle", "spots", "splash"],
     "tabby": ["stripe", "feather", "leaf", "stripe", "shade", "fern"],
