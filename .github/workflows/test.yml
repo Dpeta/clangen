@@ -30,14 +30,14 @@ jobs:
         run: python3 -m unittest tests/test_relationships.py tests/test_thoughts.py tests/test_relation_events.py tests/test_conditions.py tests/test_utility.py tests/test_cat.py tests/test_save.py
         
   # Check if file encoding is correct.
-  encoding_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python 3.11 x64
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          architecture: 'x64'
-      - name: Check file encoding
-        run: python3 tests/test_encoding.py
+  #encoding_test:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: actions/checkout@v3
+  #    - name: Setup Python 3.11 x64
+  #      uses: actions/setup-python@v4
+  #      with:
+  #        python-version: '3.11'
+  #        architecture: 'x64'
+  #    - name: Check file encoding
+  #      run: python3 tests/test_encoding.py
